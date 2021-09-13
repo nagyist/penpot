@@ -158,8 +158,13 @@
     (hooks/setup-shortcuts node-editing? drawing-path?)
     (hooks/setup-active-frames objects vbox hover active-frames)
 
+    
+
     [:div.viewport
      [:div.viewport-overlays
+
+      
+      
       [:& wtr/frame-renderer {:objects objects
                               :background background}]
 
@@ -228,7 +233,6 @@
        :on-pointer-up    on-pointer-up}
 
       [:g {:style {:pointer-events (if disable-events? "none" "auto")}}
-
        (when show-outlines?
          [:& outline/shape-outlines
           {:objects objects
