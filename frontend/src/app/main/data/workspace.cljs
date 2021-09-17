@@ -1097,12 +1097,8 @@
               :text
               (rx/of (dwc/start-edition-mode id))
 
-              :group
+              (:group :bool)
               (rx/of (dwc/select-shapes (into (d/ordered-set) [(last shapes)])))
-
-              :bool
-              ;; TODO
-              (js/alert "TODO")
 
               :svg-raw
               nil
@@ -1911,3 +1907,6 @@
 
 ;; Boolean
 (d/export dwb/create-bool)
+(d/export dwb/group-to-bool)
+(d/export dwb/bool-to-group)
+(d/export dwb/change-bool-type)
