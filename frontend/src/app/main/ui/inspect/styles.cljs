@@ -1,3 +1,9 @@
+;; This Source Code Form is subject to the terms of the Mozilla Public
+;; License, v. 2.0. If a copy of the MPL was not distributed with this
+;; file, You can obtain one at http://mozilla.org/MPL/2.0/.
+;;
+;; Copyright (c) KALEIDOS INC
+
 (ns app.main.ui.inspect.styles
   (:require-macros [app.main.style :as stl])
   (:require
@@ -9,11 +15,13 @@
    [app.common.types.tokens-lib :as ctob]
    [app.main.data.style-dictionary :as sd]
    [app.main.refs :as refs]
+   [app.main.ui.inspect.styles.panels.fill :refer [fill-panel*]]
    [app.main.ui.inspect.styles.panels.geometry :refer [geometry-panel*]]
    [app.main.ui.inspect.styles.panels.layout :refer [layout-panel*]]
    [app.main.ui.inspect.styles.panels.layout-element :refer [layout-element-panel*]]
    [app.main.ui.inspect.styles.panels.tokens-panel :refer [tokens-panel*]]
    [app.main.ui.inspect.styles.panels.variants-panel :refer [variants-panel*]]
+   [app.main.ui.inspect.styles.panels.visibility :refer [visibility-panel*]]
    [app.main.ui.inspect.styles.style-box :refer [style-box*]]
    [app.util.code-gen.style-css :as css]
    [app.util.i18n :refer [tr]]
@@ -48,6 +56,13 @@
    :text     [:visibility :geometry :text :shadow :blur :stroke :layout-element]
    :variant  [:variant :geometry :fill :stroke :shadow :blur :layout :layout-element]})
 
+(defn- has-fill?
+  [shape]
+  (and
+   (not (contains? #{:text :group} (:type shape)))
+   (seq (:fills shape))))
+
+
 (defn- get-shape-type
   [shapes first-shape first-component]
   (if (= (count shapes) 1)
@@ -77,7 +92,15 @@
             (ctob/get-tokens-in-active-sets tokens-lib)
             {}))
         resolved-active-tokens
-        (sd/use-resolved-tokens* active-tokens)]
+        (sd/use-resolved-tokens* active-tokens)
+        has-visibility-props? (mf/use-fn
+                               (fn [shape]
+                                 (let [shape-type (:type shape)]
+                                   (and
+                                    (not (or (= shape-type :text) (= shape-type :group)))
+                                    (or (:opacity shape)
+                                        (:blend-mode shape)
+                                        (:visibility shape))))))]
     [:ol {:class (stl/css :styles-tab) :aria-label (tr "labels.styles")}
      ;;  TOKENS PANEL
      (when (or active-themes active-sets)
@@ -128,6 +151,24 @@
                                             :objects objects
                                             :resolved-tokens resolved-active-tokens
                                             :layout-element-properties layout-element-properties}]])))
+          ;; FILL PANEL
+          :fill
+          (let [shapes (filter has-fill? shapes)]
+            (when (seq shapes)
+              [:> style-box* {:panel :fill}
+               [:> fill-panel* {:color-space color-space
+                                :shapes shapes
+                                :objects objects
+                                :resolved-tokens resolved-active-tokens}]]))
+
+          ;; VISIBILITY PANEL
+          :visibility
+          (let [shapes (filter has-visibility-props? shapes)]
+            (when (seq shapes)
+              [:> style-box* {:panel :visibility}
+               [:> visibility-panel* {:shapes shapes
+                                      :objects objects
+                                      :resolved-tokens resolved-active-tokens}]]))
           ;; DEFAULT WIP
           [:> style-box* {:panel panel}
            [:div color-space]])])]))

@@ -4,7 +4,7 @@
 ;;
 ;; Copyright (c) KALEIDOS INC
 
-(ns app.main.ui.inspect.styles.panels.layout
+(ns app.main.ui.inspect.styles.panels.visibility
   (:require-macros [app.main.style :as stl])
   (:require
    [app.common.data.macros :as dm]
@@ -14,35 +14,12 @@
    [rumext.v2 :as mf]))
 
 (def ^:private properties
-  [:display
-   :flex-direction
-   :flex-wrap
-   :grid-template-rows
-   :grid-template-columns
-   :align-items
-   :align-content
-   :justify-items
-   :justify-content
-   :row-gap
-   :column-gap
-   :gap
-   :padding-inline-start
-   :padding-inline-end
-   :padding-block-start
-   :padding-block-end])
-
-(def ^:private shape-prop->padding-prop
-  {:padding-block-start :p1
-   :padding-inline-end :p2
-   :padding-block-end :p3
-   :padding-inline-start :p4})
+  [:opacity
+   :blend-mode])
 
 (defn- get-applied-tokens-in-shape
   [shape-tokens property]
-  (let [padding-prop (get shape-prop->padding-prop property)]
-    (if padding-prop
-      (get shape-tokens padding-prop)
-      (get shape-tokens property))))
+  (get shape-tokens property))
 
 (defn- get-resolved-token
   [property shape resolved-tokens]
@@ -51,19 +28,19 @@
         token (get resolved-tokens applied-tokens-in-shape)]
     token))
 
-(mf/defc layout-panel*
+(mf/defc visibility-panel*
   [{:keys [shapes objects resolved-tokens]}]
-  [:div {:class (stl/css :variants-panel)}
+  [:div {:class (stl/css :visibility-panel)}
    (for [shape shapes]
-     [:div {:key (:id shape) :class "layout-shape"}
+     [:div {:key (:id shape) :class "visibility-shape"}
       (for [property properties]
         (when-let [value (css/get-css-value objects shape property)]
           (let [property-name (cmm/get-css-rule-humanized property)
                 resolved-token (get-resolved-token property shape resolved-tokens)
                 property-value (if (not resolved-token) (css/get-css-property objects shape property) "")]
-            [:> properties-row* {:key (dm/str "layout-property-" property)
+            [:> properties-row* {:key (dm/str "visibility-property-" property)
                                  :term property-name
-                                 :detail value
+                                 :detail (dm/str value)
                                  :token resolved-token
                                  :property property-value
                                  :copiable true}])))])])
